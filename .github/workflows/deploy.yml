@@ -1,0 +1,46 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "master" branch
+  #push:
+  #  branches: [ "master" ]
+  #pull_request:
+  #  branches: [ "master" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  createFile:
+    name: Create A File
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v2
+      - uses: 1arp/create-a-file-action@0.3
+        with:
+          #path: './data/'
+          file: 'keys.py'
+          content: |
+            spotify_client_id = ${{ secrets.SPOTIFY_CLIENT_ID }}
+            spotify_client_secret = ${{ secrets.SPOTIFY_SECRET_KEY }}
+
+            bot_token = ${{ secrets.TELEGRAM_BOT_TOKEN }}
+
+      - name: Run a multi-line script
+        run: |
+          cd /home/simone/Documenti/Office_of_cards_bot/
+          git add data/stats.csv
+          git commit --allow-empty -m "stats upload"
+          git push origin master
+
+          git pull
+
+          cd /home/simone/Documenti/actions-runner/_work/Office_of_cards_bot/Office_of_cards_bot/
+          cp keys.py /home/simone/Documenti/Office_of_cards_bot/
+
+          cd /home/simone/Documenti
+          ./OOC_startup.sh

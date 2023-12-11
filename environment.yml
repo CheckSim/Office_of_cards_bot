@@ -1,0 +1,17 @@
+name: OOC
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - bs4=4.11.1=hd3eb1b0_0
+  - ipykernel=6.19.2=py310h20db666_0
+  - nb_conda_kernels=2.3.1=py310hecd8cb5_0
+  - nest-asyncio=1.5.6=py310hecd8cb5_0
+  - numpy=1.23.5=py310h9638375_0
+  - pandas=1.5.2=py310h3ea8b11_0
+  - python=3.10.9=h218abb5_0
+  - python-telegram-bot=20.1=pyhd8ed1ab_0
+  - pytz=2022.7=py310hecd8cb5_0
+  - requests=2.28.1=py310hecd8cb5_0
+  - spotipy=2.22.1=pyhd8ed1ab_0
+prefix: /Users/simonececconi/opt/anaconda3/envs/OOC
