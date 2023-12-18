@@ -34,7 +34,8 @@ jobs:
         run: |
           cd /home/simone/Documenti/Office_of_cards_bot/
           git add data/stats.csv
-          git commit --allow-empty -m "stats upload"
+          git add data/db.csv
+          git commit --allow-empty -m "stats and db update"
           git push -f origin master
 
           git pull
