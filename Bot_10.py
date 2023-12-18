@@ -5,8 +5,8 @@
 import random
 import requests
 import spotipy
-import pytz
-from datetime import datetime, time
+from zoneinfo import ZoneInfo
+from datetime import datetime, time, timezone
 import pandas as pd
 import numpy as np
 
@@ -87,10 +87,9 @@ async def notify_episode(context: ContextTypes.DEFAULT_TYPE) -> None:
             new_episode['Spotify_URL'] = results['items'][0]['external_urls']['spotify']
             new_episode['Description'] = results['items'][0]['description']
             new_episode['Category'] = category_finder(last_title[0])
-            new_episode['Guest'] = name_finder(last_title[0])
             new_episode['GPT'] = '*'
             new_episode['Sottotitolo'] = '*'
-            new_episode['Shownotes'] = shownotes()
+            new_episode['Shownotes'], new_episode['Guest'] = shownotes_names(new_id)
             new_episode['Google_url'] = google_url()
             new_episode.to_csv(episode_path)
             await context.bot.send_message(chat_id=context.job.chat_id, text = f"<b>Nuovo episodio del tuo podcast preferito!</b>", parse_mode='HTML')
@@ -104,7 +103,7 @@ async def notify_episode(context: ContextTypes.DEFAULT_TYPE) -> None:
         await context.bot.send_message(chat_id=311429528, text = f"<b>Qualcosa è andato storto!</b>", parse_mode='HTML')
 
 # Funzione per ottenere gli shownotes di un episodio
-def shownotes():
+def shownotes_names(id_episodio):
     headers = {
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:55.0) Gecko/20100101 Firefox/55.0',
     }
@@ -112,8 +111,15 @@ def shownotes():
     resp = requests.get('https://officeofcards.com/ospite/', headers=headers)
     soup = BeautifulSoup(resp.text, 'html.parser')
 
-    url = soup.find_all('div', attrs={'class':'container-overlay'})[0].a['href']
-    return url
+    containers = soup.find_all('div', attrs={'class':'container-overlay'})
+
+    if id_episodio > int(containers[0].find_all('span')[0].text.split()[-1]):
+        #await context.bot.send_message(chat_id=311429528, text = f"<b>Ancora non è stata pubblicata l'ultima shownote!</b>", parse_mode='HTML')
+        return '*','*'
+    else:
+        for container in containers:
+            if id_episodio == int(container.find_all('span')[0].text.split()[-1]):
+                return container.a['href'], container.find_all('span')[1].text
 
 # Funzione per ottenere l'URL di un episodio su Google Podcast
 def google_url():
@@ -139,7 +145,7 @@ def category_finder(string):
     else:
         return string[string.find('[')+1:string.find(']')]
 
-# Funzione per trovare il nome dell'ospite di un episodio
+# Funzione per trovare il nome dell'ospite di un episodio (non più utilizzata)
 def name_finder(string):
     cat = category_finder(string)
     id_ep, part = id_part_finder(string)
@@ -168,7 +174,7 @@ def name_finder(string):
         return 'Vincenzo Tortora'
     elif id_ep == 97:
         return 'Luca Lixi'
-    elif id_ep == 97:
+    elif id_ep == 101:
         return 'Virginia Stagni'
     else:
         if cat == 'INTERVISTA':
@@ -208,6 +214,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await context.bot.send_message(chat_id = update.effective_chat.id, text = text_start, reply_markup = ReplyKeyboardMarkup(buttons_menu, resize_keyboard = True))
     
     context.job_queue.run_repeating(notify_episode, chat_id = update.effective_chat.id, interval=3600, first=10)
+    #context.job_queue.run_daily(notify_episode, time = time(17, 47, 00, tzinfo=ZoneInfo('Europe/Rome')), days = (1), chat_id = update.effective_chat.id, name='dailycheck', data = context)
     context.job_queue.run_repeating(check_pill, chat_id = update.effective_chat.id, interval=3600, first=15)
 
 # Funzione asincrona per inviare un episodio in chat
