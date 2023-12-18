@@ -1,8 +1,10 @@
 # Office of Cards Bot
 
-![Office of Cards Logo](Logo.png) <!-- Sostituisci link_al_logo.png con il link al tuo logo -->
+![Office of Cards Logo](Logo.png)
 
 Benvenuto nel repository del bot Telegram per il podcast "Office of Cards". Questo bot fornisce un'interfaccia interattiva per esplorare gli episodi del podcast e ricevere notifiche sui nuovi contenuti.
+
+Aggiungi il bot su telegram al seguente link --> [Office of Cards Bot](https://t.me/office_of_card_bot)
 
 ## Funzionalità Principali
 
