@@ -22,7 +22,7 @@ Se vuoi contribuire a migliorare questo bot, segui questi passaggi:
 1. **Installazione Dipendenze con Anaconda:** Assicurati di avere Anaconda installato e utilizza l'environment.yml per creare l'ambiente con le dipendenze necessarie.
     ```bash
     conda env create -f environment.yml
-    conda activate nome_ambiente
+    conda activate OOC
     ```
 2. **Lavora sulle modifiche:** Apri il tuo editor preferito e inizia a contribuire! Editor consigliato: VSCode
 3. **Push e Pull Request:** Quando sei soddisfatto delle tue modifiche, effettua il push sul tuo repository e invia una pull request.
