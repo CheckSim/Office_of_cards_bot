@@ -99,8 +99,8 @@ async def notify_episode(context: ContextTypes.DEFAULT_TYPE) -> None:
             sheet1 = pd.concat([sheet1, new_episode], ignore_index = True)
             sheet1.to_csv(db_path, index = False)
             reloads()
-    except:
-        await context.bot.send_message(chat_id=311429528, text = f"<b>Qualcosa è andato storto!</b>", parse_mode='HTML')
+    except Exception as e:
+        await context.bot.send_message(chat_id=311429528, text = f"Error: {e}", parse_mode='HTML')
 
 # Funzione per ottenere gli shownotes di un episodio
 def shownotes_names(id_episodio):
