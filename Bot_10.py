@@ -90,6 +90,9 @@ async def notify_episode(context: ContextTypes.DEFAULT_TYPE) -> None:
             new_episode['GPT'] = '*'
             new_episode['Sottotitolo'] = '*'
             new_episode['Shownotes'], new_episode['Guest'] = shownotes_names(new_id)
+            if (new_episode['Shownotes'] == '*') or (new_episode['Guest'] == '*'):
+                await context.bot.send_message(chat_id=311429528, text = f"* in Shownotes url o Guest. Controllare.", parse_mode='HTML')
+                return None
             new_episode['Google_url'] = google_url()
             new_episode.to_csv(episode_path)
             await context.bot.send_message(chat_id=context.job.chat_id, text = f"<b>Nuovo episodio del tuo podcast preferito!</b>", parse_mode='HTML')
@@ -144,49 +147,6 @@ def category_finder(string):
         return 'INTERVISTA'
     else:
         return string[string.find('[')+1:string.find(']')]
-
-# Funzione per trovare il nome dell'ospite di un episodio (non più utilizzata)
-def name_finder(string):
-    cat = category_finder(string)
-    id_ep, part = id_part_finder(string)
-    
-    if id_ep == 2:
-        return 'Francesco Federico'
-    elif id_ep == 4:
-        return 'Nicola Basso'
-    elif id_ep == 5:
-        return 'Andrea Maffioli'
-    elif id_ep == 8:
-        return 'Paolo Levoni'
-    elif id_ep == 14:
-        return 'Luca Pagni'
-    elif id_ep == 9:
-        return 'Francesco Federico'
-    elif id_ep == 22:
-        return 'Francesco Federico'
-    elif id_ep == 15:
-        return 'Fabio Loconte'
-    elif id_ep == 17:
-        return 'Alessandro Santo'
-    elif id_ep == 66:
-        return 'Roberto Bonzio'
-    elif id_ep == 74:
-        return 'Vincenzo Tortora'
-    elif id_ep == 97:
-        return 'Luca Lixi'
-    elif id_ep == 101:
-        return 'Virginia Stagni'
-    else:
-        if cat == 'INTERVISTA':
-            splitted = string.split(' ')
-            splitted = [x for x in splitted if x != '-']
-            if splitted[1][0] == '[':
-                splitted.pop(1)
-            splitted.pop(0)
-            rejoined = ' '.join(splitted)
-            return rejoined.split(',')[0].split(':')[0].strip()
-            
-    return '*'
 
 # Funzione per trovare ID e parte di un episodio a partire dal suo titolo
 def id_part_finder(stringa):
@@ -338,7 +298,7 @@ def buttons_generator(episodio):
     buttons = []
 
     for i, url_val in enumerate(button_urls.values[0]):
-        if pd.isna(url_val) == True :
+        if (pd.isna(url_val) == True) or (url_val == '*'):
             continue
         else:
             buttons.append([InlineKeyboardButton(text = str(buttons_text[i]), url = str(url_val))])
