@@ -90,7 +90,7 @@ async def notify_episode(context: ContextTypes.DEFAULT_TYPE) -> None:
             new_episode['GPT'] = '*'
             new_episode['Sottotitolo'] = '*'
             new_episode['Shownotes'], new_episode['Guest'] = shownotes_names(new_id)
-            if (new_episode['Shownotes'] == '*') or (new_episode['Guest'] == '*'):
+            if (new_episode['Shownotes'].values == '*') or (new_episode['Guest'].values == '*'):
                 await context.bot.send_message(chat_id=311429528, text = f"* in Shownotes url o Guest. Controllare.", parse_mode='HTML')
                 return None
             new_episode['Google_url'] = google_url()
@@ -370,7 +370,7 @@ async def random_episode_funct(update: Update, context: ContextTypes.DEFAULT_TYP
     buttons = []
 
     for i, url_val in enumerate(button_urls):
-        if pd.isna(url_val) == True :
+        if pd.isna(url_val) == True or (url_val == '*'):
             continue
         else:
             buttons.append([InlineKeyboardButton(text = str(buttons_text[i]), url = str(url_val))])
