@@ -90,19 +90,21 @@ async def notify_episode(context: ContextTypes.DEFAULT_TYPE) -> None:
             new_episode['GPT'] = '*'
             new_episode['Sottotitolo'] = '*'
             new_episode['Shownotes'], new_episode['Guest'] = shownotes_names(new_id)
-            if (new_episode['Shownotes'].values == '*') or (new_episode['Guest'].values == '*'):
-                await context.bot.send_message(chat_id=311429528, text = f"* in Shownotes url o Guest. Controllare.", parse_mode='HTML')
             new_episode['Google_url'] = google_url()
             new_episode.to_csv(episode_path)
-            await context.bot.send_message(chat_id=context.job.chat_id, text = f"<b>Nuovo episodio del tuo podcast preferito!</b>", parse_mode='HTML')
-            episode = pd.read_csv(episode_path)
-            buttons = buttons_generator(episode)
-            await context.bot.send_message(chat_id=context.job.chat_id, text = f"<b>{episode['Titolo'].values[0]}</b> \n\n {episode['Description'].values[0]}", parse_mode='HTML', reply_markup = InlineKeyboardMarkup(buttons))
-            sheet1 = pd.concat([sheet1, new_episode], ignore_index = True)
-            sheet1.to_csv(db_path, index = False)
-            reloads()
+            if (new_episode['Shownotes'].values == '*') or (new_episode['Guest'].values == '*'):
+                await context.bot.send_message(chat_id=311429528, text = f"* in Shownotes url o Guest. Controllare.", parse_mode='HTML')
+            else:
+                episode = pd.read_csv(episode_path)
+                buttons = buttons_generator(episode)
+                await context.bot.send_message(chat_id=context.job.chat_id, text = f"<b>Nuovo episodio del tuo podcast preferito!</b>", parse_mode='HTML')
+                await context.bot.send_message(chat_id=context.job.chat_id, text = f"<b>{episode['Titolo'].values[0]}</b> \n\n {episode['Description'].values[0]}", parse_mode='HTML', reply_markup = InlineKeyboardMarkup(buttons))
+                sheet1 = pd.concat([sheet1, new_episode], ignore_index = True)
+                sheet1.to_csv(db_path, index = False)
     except Exception as e:
         await context.bot.send_message(chat_id=311429528, text = f"Error: {e}", parse_mode='HTML')
+    else:
+        reloads()
 
 # Funzione per ottenere gli shownotes di un episodio
 def shownotes_names(id_episodio):
