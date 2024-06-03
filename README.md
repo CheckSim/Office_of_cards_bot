@@ -52,6 +52,15 @@ bot_token = 'YOUR_TELEGRAM_BOT_TOKEN'
 
 Assicurati che il file `keys.py` sia correttamente aggiunto in `.gitignore`
 
+## Donazioni
+
+Se ti piace il progetto e vuoi dimostrarmi il tuo supporto, offrimi un caffè 😁
+
+<a href="https://buymeacoffee.com/SimoneCecconi" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
+
+Oppure puoi fare una donazione tramite PayPal:
+- [PayPal](https://www.paypal.com/paypalme/SimoneCecconi)
+
 ## Contatti
 
 Per domande, problemi o suggerimenti, puoi contattare il team di sviluppo:

@@ -182,7 +182,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def send_episode(update: Update, context: ContextTypes.DEFAULT_TYPE):
     episode = pd.read_csv(episode_path)
     buttons = buttons_generator(episode)
-    await context.bot.send_message(chat_id = update.effective_chat.id, text = f"<b>{episode['Titolo'].values[0]}</b> \n\n {episode['Description'].values[0]}", parse_mode='HTML', reply_markup = InlineKeyboardMarkup(buttons))
+    await context.bot.send_message(chat_id = update.effective_chat.id, text = f"<b>{episode['Titolo'].values[0]}</b> \n\nCiao, se trovi utile questo bot, puoi sostenerlo facendo una semplice donazione tramite i link che trovi in fondo al messaggio. \n\n{episode['Description'].values[0]}", parse_mode='HTML', reply_markup = InlineKeyboardMarkup(buttons))
 
 # Funzione asincrona per gestire la ricerca per categorie
 async def categories_search(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -304,6 +304,8 @@ def buttons_generator(episodio):
         else:
             buttons.append([InlineKeyboardButton(text = str(buttons_text[i]), url = str(url_val))])
 
+    buttons.append([InlineKeyboardButton(text = 'BuyMeACoffee☕️', url = 'https://buymeacoffee.com/SimoneCecconi'), InlineKeyboardButton(text = 'Donazione PayPal', url = 'https://www.paypal.com/paypalme/SimoneCecconi')])
+
     return buttons
 
 # Funzione per ottenere le statistiche di utilizzo del podcast
@@ -375,7 +377,7 @@ async def random_episode_funct(update: Update, context: ContextTypes.DEFAULT_TYP
             continue
         else:
             buttons.append([InlineKeyboardButton(text = str(buttons_text[i]), url = str(url_val))])
-    
+    buttons.append([InlineKeyboardButton(text = 'BuyMeACoffee☕️', url = 'https://buymeacoffee.com/SimoneCecconi'), InlineKeyboardButton(text = 'Donazione PayPal', url = 'https://www.paypal.com/paypalme/SimoneCecconi')])
     stats(str(update.message.chat_id), 'Random')
     await context.bot.send_message(chat_id = update.effective_chat.id, text = f"<b>{pill['Titolo'].values[0]}</b> \n\n {pill['Description'].values[0]}", parse_mode='HTML', reply_markup = InlineKeyboardMarkup(buttons))
     
