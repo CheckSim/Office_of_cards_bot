@@ -37,7 +37,7 @@ pills_path = './data/pills.csv'
 def reloads():
     global sheet1, last_id, last_part, categories, guests, text_start, text_error
     
-    sheet1 = pd.read_csv(db_path)
+    sheet1 = pd.read_csv(db_path, engine = 'python', encoding = 'latin1')
     sheet1['Guest_lower'] = sheet1['Guest'].str.lower()
 
     last_id = max(sheet1['Id'])
