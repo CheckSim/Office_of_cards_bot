@@ -90,7 +90,7 @@ async def notify_episode(context: ContextTypes.DEFAULT_TYPE) -> None:
             new_episode['GPT'] = '*'
             new_episode['Sottotitolo'] = '*'
             new_episode['Shownotes'], new_episode['Guest'] = shownotes_names(new_id)
-            new_episode['Google_url'] = google_url()
+            new_episode['Google_url'] = 'deprecated'
             new_episode.to_csv(episode_path)
             if (new_episode['Shownotes'].values == '*') or (new_episode['Guest'].values == '*'):
                 await context.bot.send_message(chat_id=311429528, text = f"* in Shownotes url o Guest. Controllare.", parse_mode='HTML')
