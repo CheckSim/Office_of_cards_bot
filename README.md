@@ -19,7 +19,7 @@ Se vuoi contribuire a migliorare questo bot, segui questi passaggi:
 - **Fork del Repository:** Fai il fork di questo repository sul tuo account GitHub se vuoi sperimentare liberamente.
 - **Apri una issue:** Apri una issue su Github nell'apposita sezione per segnalare bug o proporre nuove features
 
-1. **Installazione Dipendenze con Anaconda:** Assicurati di avere Anaconda installato e utilizza l'environment.yml per creare l'ambiente con le dipendenze necessarie.
+1. **Installazione Dipendenze con Anaconda:** Assicurati di avere pip installato e utilizza requirement.txt per installare le dipendenze necessarie nell'ambiente virtuale.
     ```bash
     pip install -r requirements.txt
     ```
