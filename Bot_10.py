@@ -5,8 +5,7 @@
 import random
 import requests
 import spotipy
-from zoneinfo import ZoneInfo
-from datetime import datetime, time, timezone
+from datetime import datetime
 import pandas as pd
 import numpy as np
 
