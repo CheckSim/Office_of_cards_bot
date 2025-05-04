@@ -8,6 +8,7 @@ import spotipy
 from datetime import datetime
 import pandas as pd
 import numpy as np
+import os
 
 from spotipy.oauth2 import SpotifyClientCredentials
 from bs4 import BeautifulSoup
@@ -16,7 +17,9 @@ from telegram.ext import CommandHandler, ContextTypes, Application, MessageHandl
 
 # Import di costanti e chiavi API da altri moduli
 from constants import *
-from keys import *
+
+spotify_client_id, spotify_client_secret = get_spotify_credentials()
+bot_token = get_bot_token()
 
 import nest_asyncio
 nest_asyncio.apply()
