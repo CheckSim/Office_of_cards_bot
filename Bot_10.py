@@ -424,27 +424,30 @@ def check_pill(context: ContextTypes.DEFAULT_TYPE):
 
 # Funzione principale per far partire il bot
 def main():
-    reloads()
-    updater = Application.builder().token(bot_token).build()
+    try:
+        reloads()
+        updater = Application.builder().token(bot_token).build()
 
-    updater.add_handler(CommandHandler('start', start_command))
-    
-    updater.add_handler(CallbackQueryHandler(cbq))
-    
-    conv_handler = ConversationHandler(
-        entry_points=[CommandHandler("message", broadcast_message)],
-        states={
-            MESSAGGIO: [MessageHandler(filters.TEXT & ~filters.COMMAND, mess)],
-        },
-        fallbacks=[CommandHandler("cancel", cancel)],
-    )
-    
-    updater.add_handler(conv_handler)
-    
-    updater.add_handler(MessageHandler(filters.TEXT, message_handler))
-    
-    updater.run_polling()
-    # updater.idle()
+        updater.add_handler(CommandHandler('start', start_command))
+        
+        updater.add_handler(CallbackQueryHandler(cbq))
+        
+        conv_handler = ConversationHandler(
+            entry_points=[CommandHandler("message", broadcast_message)],
+            states={
+                MESSAGGIO: [MessageHandler(filters.TEXT & ~filters.COMMAND, mess)],
+            },
+            fallbacks=[CommandHandler("cancel", cancel)],
+        )
+        
+        updater.add_handler(conv_handler)
+        
+        updater.add_handler(MessageHandler(filters.TEXT, message_handler))
+        
+        updater.run_polling()
+        # updater.idle()
+    except:
+        pass
 
 if __name__ == "__main__":
     main()
