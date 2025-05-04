@@ -55,7 +55,7 @@ Assicurati che il file `keys.py` sia correttamente aggiunto in `.gitignore`
 
 Se ti piace il progetto e vuoi dimostrarmi il tuo supporto, offrimi un caffè 😁
 
-<a href="https://buymeacoffee.com/SimoneCecconi" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" height="41" width="174"></a>
+<script type='text/javascript' src='https://storage.ko-fi.com/cdn/widget/Widget_2.js'></script><script type='text/javascript'>kofiwidget2.init('Offrimi un caffè', '#FCCD53', 'U7U31EI13Q');kofiwidget2.draw();</script> 
 
 Oppure puoi fare una donazione tramite PayPal:
 - [PayPal](https://www.paypal.com/paypalme/SimoneCecconi)
