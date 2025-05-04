@@ -55,7 +55,7 @@ Assicurati che il file `keys.py` sia correttamente aggiunto in `.gitignore`
 
 Se ti piace il progetto e vuoi dimostrarmi il tuo supporto, offrimi un caffè 😁
 
-<script type='text/javascript' src='https://storage.ko-fi.com/cdn/widget/Widget_2.js'></script><script type='text/javascript'>kofiwidget2.init('Offrimi un caffè', '#FCCD53', 'U7U31EI13Q');kofiwidget2.draw();</script> 
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/U7U31EI13Q)
 
 Oppure puoi fare una donazione tramite PayPal:
 - [PayPal](https://www.paypal.com/paypalme/SimoneCecconi)
