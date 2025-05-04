@@ -444,7 +444,7 @@ def main():
     updater.add_handler(MessageHandler(filters.TEXT, message_handler))
     
     updater.run_polling()
-    updater.idle()
+    # updater.idle()
 
 if __name__ == "__main__":
     main()
