@@ -451,6 +451,8 @@ def main():
     except:
         pass
 
+flask_app = Flask(__name__)
+
 @flask_app.route('/')
 def index():
     return 'Bot is running!'
