@@ -9,6 +9,8 @@ from datetime import datetime
 import pandas as pd
 import numpy as np
 import os
+import threading
+from flask import Flask
 
 from spotipy.oauth2 import SpotifyClientCredentials
 from bs4 import BeautifulSoup
@@ -449,5 +451,14 @@ def main():
     except:
         pass
 
+@flask_app.route('/')
+def index():
+    return 'Bot is running!'
+
+def run_flask():
+    port = int(os.environ.get("PORT", 5000))
+    flask_app.run(host="0.0.0.0", port=port)
+
 if __name__ == "__main__":
+    threading.Thread(target=run_flask).start()
     main()

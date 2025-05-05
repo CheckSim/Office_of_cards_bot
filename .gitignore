@@ -210,3 +210,4 @@ notebooks/
 OOC_startup.sh
 OOC/
 test/
+*.pem
