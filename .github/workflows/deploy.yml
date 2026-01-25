@@ -1,46 +1,127 @@
-# This is a basic workflow to help you get started with Actions
+name: Deploy to Raspberry Pi
 
-name: Raspberry Deployment
-
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "master" branch
-  #push:
-  #  branches: [ "master" ]
-  #pull_request:
-  #  branches: [ "master" ]
-
-  # Allows you to run this workflow manually from the Actions tab
+  push:
+    branches: [ main, master ]
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+env:
+  # Nome del progetto (usato per la directory sul Pi)
+  PROJECT_NAME: ${{ github.event.repository.name }}
+  
+  # Path base dove sono i progetti sul Pi (modificabile)
+  BASE_PATH: ~/projects
+
 jobs:
-  createFile:
-    name: Create A File
-    runs-on: self-hosted
+  deploy:
+    runs-on: ubuntu-latest
+    
     steps:
-      - uses: actions/checkout@v2
-      - uses: 1arp/create-a-file-action@0.3
-        with:
-          #path: './data/'
-          file: 'keys.py'
-          content: |
-            spotify_client_id = ${{ secrets.SPOTIFY_CLIENT_ID }}
-            spotify_client_secret = ${{ secrets.SPOTIFY_SECRET_KEY }}
-
-            bot_token = ${{ secrets.TELEGRAM_BOT_TOKEN }}
-
-      - name: Copy and reboot
-        run: |
-          cd /home/simone/Documenti/Office_of_cards_bot/
-          git add data/stats.csv
-          git add data/db.csv
-          git commit --allow-empty -m "stats and db update"
-          git push -f origin master
-
-          git pull
-
-          cd /home/simone/Documenti/actions-runner/_work/Office_of_cards_bot/Office_of_cards_bot/
-          cp keys.py /home/simone/Documenti/Office_of_cards_bot/
+    - name: Deploy to Raspberry Pi
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        port: ${{ secrets.SSH_PORT || 22 }}
+        envs: PROJECT_NAME,BASE_PATH,ENV_FILE
+        script: |
+          set -e
           
-          reboot
+          PROJECT_DIR="$BASE_PATH/$PROJECT_NAME"
+          
+          echo "🚀 Starting deployment for $PROJECT_NAME"
+          
+          # Crea la directory se non esiste e clona il repo
+          if [ ! -d "$PROJECT_DIR" ]; then
+            echo "📁 Directory not found, cloning repository..."
+            mkdir -p "$BASE_PATH"
+            cd "$BASE_PATH"
+            git clone git@github.com:${{ github.repository }}.git
+          fi
+          
+          cd "$PROJECT_DIR"
+          
+          # Pull delle ultime modifiche
+          echo "⬇️  Pulling latest changes..."
+          git fetch origin
+          git reset --hard origin/${{ github.ref_name }}
+          
+          # Crea il file .env dai secrets di GitHub
+          if [ ! -z "$ENV_FILE" ]; then
+            echo "🔐 Creating .env file from secrets..."
+            echo "$ENV_FILE" > .env
+            chmod 600 .env
+            echo "✅ .env file created"
+          # Gestione Docker (se presente docker-compose.yml e risorse sufficienti)
+          elif [ -f "docker-compose.yml" ] || [ -f "docker-compose.yaml" ]; then
+            echo "🐳 Docker Compose found"
+            echo "⚠️  Warning: Docker può essere pesante su Raspberry Pi 2 (1GB RAM)"
+            echo "🔄 Rebuilding containers..."
+            docker-compose down
+            docker-compose up -d --build
+            echo "✅ Docker containers started"
+          
+          else
+            echo "ℹ️  No ENV_FILE secret found, skipping .env creation"
+          fi
+          
+          # Gestione Node.js (se presente package.json)
+          if [ -f "package.json" ]; then
+          if [ -f "package.json" ]; then
+            echo "📦 Node.js project detected"
+            
+            # Installa dipendenze se package.json è cambiato
+            npm install
+            
+            # Build se presente script build
+            if grep -q '"build"' package.json; then
+              echo "🔨 Running build..."
+              npm run build
+            fi
+            
+            # Riavvia con PM2 (se installato)
+            if command -v pm2 &> /dev/null; then
+              echo "🔄 Restarting with PM2..."
+              pm2 restart "$PROJECT_NAME" || pm2 start npm --name "$PROJECT_NAME" -- start
+            else
+              echo "⚠️  PM2 not found, skipping process restart"
+            fi
+          
+          # Gestione Python (se presente requirements.txt)
+          elif [ -f "requirements.txt" ]; then
+            echo "🐍 Python project detected"
+            
+            # Crea venv se non esiste
+            if [ ! -d "venv" ]; then
+              python3 -m venv venv
+            fi
+            
+            source venv/bin/activate
+            pip install -r requirements.txt
+            
+            # Riavvia con systemd (se configurato)
+            if systemctl --user list-units --all | grep -q "$PROJECT_NAME"; then
+              echo "🔄 Restarting systemd service..."
+              systemctl --user restart "$PROJECT_NAME"
+            else
+              echo "⚠️  Systemd service not found, skipping restart"
+            fi
+          
+          else
+            echo "ℹ️  No recognized project type (Docker/Node/Python)"
+            echo "✅ Files updated, manual restart may be needed"
+          fi
+          
+          echo "✨ Deployment completed successfully!"
+      env:
+        ENV_FILE: ${{ secrets.ENV_FILE }}
+    
+    - name: Notify deployment status
+      if: always()
+      run: |
+        if [ ${{ job.status }} == 'success' ]; then
+          echo "✅ Deployment successful"
+        else
+          echo "❌ Deployment failed"
+        fi
