@@ -6,6 +6,10 @@ import logging
 from typing import Optional, Dict, Tuple
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
+import requests
+from bs4 import BeautifulSoup
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
 
 logger = logging.getLogger(__name__)
 
@@ -76,22 +80,26 @@ class SpotifyService:
             # Pulisci titolo da prefissi "Office of Cards -"
             if title.startswith('Office of Cards -'):
                 title = title.replace('Office of Cards -', '').strip()
+
+            description = episode.get('description', '')
             
             # Estrai ID e Part dal titolo
-            episode_id, part = self._parse_id_part(title)
+            # episode_id, part = self._parse_id_part(title)
             
             # Estrai categoria
-            category = self._extract_category(title, episode_id)
+            # category = self._extract_category(title, episode_id)
+
+            enrichment = self._episode_enrichment(title, description)
             
             return {
-                'Id': episode_id,
-                'Part': part,
+                'Id': enrichment.get('Id', -1),
+                'Part': 1, 
                 'Titolo': title,
-                'Description': episode.get('description', ''),
-                'Category': category,
+                'Description': description,
+                'Category': enrichment.get('Category', '*'),
                 'Spotify_URL': episode.get('external_urls', {}).get('spotify', ''),
-                'Guest': '*',  # Da aggiornare con scraping
-                'Shownotes': '*',  # Da aggiornare con scraping
+                'Guest': enrichment.get('Guest', '*'),  
+                'Shownotes': enrichment.get('Shownotes', '*'),
                 'GPT': '*',
                 'Sottotitolo': '*'
             }
@@ -99,6 +107,74 @@ class SpotifyService:
         except Exception as e:
             logger.error(f"Error parsing episode: {e}", exc_info=True)
             return {}
+
+    def _episode_enrichment(self, title: str, description: str) -> Dict:
+        """Estrae ID, categoria, ospite e shownotes da titolo, descrizione e pagina ospiti HTML"""
+
+        SYSTEM_PROMPT = """
+            Sei un assistente AI che aiuta ad estrarre informazioni chiave riguardo episodi di podcast dal titolo, dalla descrizione da un estratto della pagina html del podcast in cui ci potrebbero essere listati gli ultimi ospiti.
+            Le informazioni che devi estrarre sono:
+            - Id dell'episodio: numero identificativo dell'episodio, da restituire solo se disponibile, altrimenti metti -1
+            - Category:
+                - INTERVISTA: se c'è un ospite che sta venendo intervistato
+                - Q&A: se l'episodio consiste in domande e risposte alla community. Di solito è specificato nel titolo o nella descrizione
+                - OFFICE EXTRAS: Di solito è specificato nel titolo o nella descrizione
+                - OFFICE OF CARDS X SPEECH: Di solito è specificato nel titolo o nella descrizione
+                - LIBRO: se l'episodio parla di un libro specifico
+                - ALTRO: se nessuna delle categorie precedenti si applica
+            - Guest: nome dell'ospite intervistato, solo in caso di Category INTERVISTA, altrimenti "*"
+            - Shownotes: l'URL delle shownotes dell'episodio, se disponibile, altrimenti "*"
+
+            Restituisci sempre un dizionario con le seguenti chiavi:
+            - 'Id': int
+            - 'Category': str
+            - 'Guest': str
+            - 'Shownotes': str
+            """
+        
+        headers = {
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) '
+                            'AppleWebKit/537.36 (KHTML, like Gecko) '
+                            'Chrome/91.0.4472.124 Safari/537.36'
+            }
+        
+        try:
+            result = requests.get("https://officeofcards.com/ospite/", headers=headers).text
+            html = BeautifulSoup(result, 'html.parser').find_all(class_='single_ospite_in_archive')
+        except:
+            html = ''
+
+        try:
+            messages = f"""
+                Titolo: {title}
+                Descrizione: {description}
+                Pagina Ospiti HTML: {str(html)}
+                """
+            
+            llm_z = ChatOpenAI(
+                model=self.config.ZAI_MODEL,
+                openai_api_key=self.config.ZAI_API_KEY,
+                openai_api_base=self.config.ZAI_BASE,
+                streaming=True
+            )
+
+            prompt = ChatPromptTemplate.from_messages([
+                ("system", SYSTEM_PROMPT),
+                ("human", "{input}")
+            ])
+
+            chain = prompt | llm_z
+
+            response = chain.invoke({"input": messages})
+            result = eval(response.content)
+
+            return result
+        except Exception as e:
+            logger.error(f"Error in episode enrichment: {e}", exc_info=True)
+            return {'Id': -1,
+                    'Category': '*',
+                    'Guest': '*',
+                    'Shownotes': '*'}
     
     def _parse_pill(self, pill: Dict) -> Dict:
         """Parsea una pillola Spotify"""

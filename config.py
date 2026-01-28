@@ -19,7 +19,10 @@ class Config:
         self.SPOTIFY_CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
         self.SPOTIFY_CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
         self.ADMIN_CHAT_ID = int(os.getenv("ADMIN_CHAT_ID", "311429528"))
-        
+        self.ZAI_API_KEY=os.getenv("ZAI_API_KEY")
+        self.ZAI_MODEL=os.getenv("ZAI_MODEL")
+        self.ZAI_BASE=os.getenv("ZAI_BASE")
+
         # Validazione
         if not self.BOT_TOKEN:
             raise ValueError("BOT_TOKEN non trovato nel file .env")

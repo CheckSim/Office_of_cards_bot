@@ -7,7 +7,7 @@ Versione refactorata con check centralizzato e migliore gestione
 """
 
 import logging
-from datetime import time
+from datetime import time, datetime
 from zoneinfo import ZoneInfo
 from typing import Optional, List
 import random
@@ -124,20 +124,20 @@ class OfficeOfCardsBot:
         
         # Check episodi settimanale (ogni lunedì alle 17:00)
         # Cambia days per altri giorni: 0=Lun, 1=Mar, 2=Mer, 3=Gio, 4=Ven, 5=Sab, 6=Dom
-        self.episode_check_job = context.job_queue.run_daily(
-            self.check_new_episode_centralized,
-            time=time(17, 0, 0, tzinfo=ZoneInfo('Europe/Rome')),
-            days=(0,),  # Solo lunedì
-            name='weekly_episode_check'
-        )
-        
-        # Alternative:
-        # Per check GIORNALIERO (ogni giorno alle 17:00):
         # self.episode_check_job = context.job_queue.run_daily(
         #     self.check_new_episode_centralized,
         #     time=time(17, 0, 0, tzinfo=ZoneInfo('Europe/Rome')),
-        #     name='daily_episode_check'
+        #     days=(0,),  # Solo lunedì
+        #     name='weekly_episode_check'
         # )
+        
+        # Alternative:
+        # Per check GIORNALIERO (ogni giorno alle 17:00):
+        self.episode_check_job = context.job_queue.run_daily(
+            self.check_new_episode_centralized,
+            time=time(17, 0, 0, tzinfo=ZoneInfo('Europe/Rome')),
+            name='daily_episode_check'
+        )
         
         # Per check OGNI 6 ORE:
         # self.episode_check_job = context.job_queue.run_repeating(
