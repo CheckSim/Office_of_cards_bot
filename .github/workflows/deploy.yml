@@ -28,6 +28,8 @@ jobs:
         username: ${{ secrets.SSH_USER }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         port: 22
+        timeout: 30m
+        command_timeout: 30m
         envs: >
           PROJECT_NAME,
           BASE_PATH,
