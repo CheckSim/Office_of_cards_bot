@@ -17,6 +17,11 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+    - name: Connect to Tailscale
+      uses: tailscale/github-action@v2
+      with:
+        authkey: ${{ secrets.TAILSCALE_AUTH_KEY }}
+    
     - name: Deploy to Raspberry Pi
       uses: appleboy/ssh-action@v1.0.3
       with:
@@ -53,21 +58,11 @@ jobs:
             echo "$ENV_FILE" > .env
             chmod 600 .env
             echo "✅ .env file created"
-          # Gestione Docker (se presente docker-compose.yml e risorse sufficienti)
-          elif [ -f "docker-compose.yml" ] || [ -f "docker-compose.yaml" ]; then
-            echo "🐳 Docker Compose found"
-            echo "⚠️  Warning: Docker può essere pesante su Raspberry Pi 2 (1GB RAM)"
-            echo "🔄 Rebuilding containers..."
-            docker-compose down
-            docker-compose up -d --build
-            echo "✅ Docker containers started"
-          
           else
             echo "ℹ️  No ENV_FILE secret found, skipping .env creation"
           fi
           
           # Gestione Node.js (se presente package.json)
-          if [ -f "package.json" ]; then
           if [ -f "package.json" ]; then
             echo "📦 Node.js project detected"
             
@@ -107,6 +102,15 @@ jobs:
             else
               echo "⚠️  Systemd service not found, skipping restart"
             fi
+          
+          # Gestione Docker (se presente docker-compose.yml e risorse sufficienti)
+          elif [ -f "docker-compose.yml" ] || [ -f "docker-compose.yaml" ]; then
+            echo "🐳 Docker Compose found"
+            echo "⚠️  Warning: Docker può essere pesante su Raspberry Pi 2 (1GB RAM)"
+            echo "🔄 Rebuilding containers..."
+            docker-compose down
+            docker-compose up -d --build
+            echo "✅ Docker containers started"
           
           else
             echo "ℹ️  No recognized project type (Docker/Node/Python)"
