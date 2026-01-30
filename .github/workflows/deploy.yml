@@ -34,6 +34,18 @@ jobs:
         envs: PROJECT_NAME,BASE_PATH,ENV_FILE
         script: |
           set -e
+
+          # Ensure required tools are installed
+          echo "🔍 Checking required tools..."
+
+          if ! command -v git >/dev/null 2>&1; then
+            echo "📦 Git not found, installing..."
+            sudo apt-get update -y
+            sudo apt-get install -y git
+            echo "✅ Git installed"
+          else
+            echo "✅ Git already installed"
+          fi
           
           PROJECT_DIR="$BASE_PATH/$PROJECT_NAME"
           
