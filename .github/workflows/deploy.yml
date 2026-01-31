@@ -66,9 +66,10 @@ jobs:
           # ENV file
           # --------------------------------------------------
           if [ -n "$ENV_FILE" ]; then
-            echo "🔐 Writing .env file"
-            echo "$ENV_FILE" > .env
+            echo "🔐 Writing .env file..."
+            printf '%s\n' "$ENV_FILE" > .env
             chmod 600 .env
+            echo "✅ .env file created with $(wc -l < .env) lines"
           else
             echo "ℹ️  No ENV_FILE provided"
           fi
@@ -94,6 +95,7 @@ jobs:
 
             if command -v pm2 >/dev/null 2>&1; then
               pm2 restart "$PROJECT_NAME" || pm2 start npm --name "$PROJECT_NAME" -- start
+              echo "✅ PM2 service restarted"
             else
               echo "⚠️  PM2 not installed"
             fi
@@ -104,29 +106,97 @@ jobs:
           elif [ -f "requirements.txt" ]; then
             echo "🐍 Python project detected"
 
-            PYTHON_BIN=python${{ secrets.PYTHON_VERSION }}
+            # Determina la versione di Python da usare
+            if [ -n "$PYTHON_VERSION" ]; then
+              PYTHON_BIN="python${PYTHON_VERSION}"
+            else
+              PYTHON_BIN="python3"
+            fi
 
             if ! command -v $PYTHON_BIN >/dev/null 2>&1; then
-              echo "❌ Python ${{ secrets.PYTHON_VERSION }} not found, please install it manually on Raspberry"
+              echo "❌ $PYTHON_BIN not found, please install it manually on Raspberry"
               exit 1
             fi
 
+            echo "🐍 Using $PYTHON_BIN ($(command -v $PYTHON_BIN))"
+
+            # Crea virtual environment se non esiste
             if [ ! -d "venv" ]; then
+              echo "📦 Creating virtual environment..."
               $PYTHON_BIN -m venv venv
             fi
 
+            # Attiva venv e installa dipendenze
             source venv/bin/activate
 
             export PIP_PREFER_BINARY=1
 
+            echo "📦 Installing dependencies..."
             pip install --upgrade pip setuptools wheel
             pip install -r requirements.txt
 
-            if sudo systemctl list-units --type=service | grep -q "$PROJECT_NAME"; then
-              echo "🔄 Restarting systemd service..."
-              sudo systemctl restart "$PROJECT_NAME"
+            # Trova il file principale Python
+            MAIN_FILE=""
+            if [ -f "main.py" ]; then
+              MAIN_FILE="main.py"
+            elif [ -f "bot.py" ]; then
+              MAIN_FILE="bot.py"
+            elif [ -f "app.py" ]; then
+              MAIN_FILE="app.py"
+            elif [ -f "run.py" ]; then
+              MAIN_FILE="run.py"
             else
-              echo "⚠️  systemd service not found"
+              echo "⚠️  No standard Python entry point found (main.py, bot.py, app.py, run.py)"
+              MAIN_FILE="main.py"  # Default
+            fi
+
+            echo "🎯 Entry point: $MAIN_FILE"
+
+            # Crea o aggiorna il servizio systemd
+            SERVICE_FILE="/etc/systemd/system/${PROJECT_NAME}.service"
+            
+            if [ ! -f "$SERVICE_FILE" ]; then
+              echo "📝 Creating systemd service..."
+              
+              sudo tee "$SERVICE_FILE" > /dev/null <<EOF
+          [Unit]
+          Description=$PROJECT_NAME
+          After=network.target
+
+          [Service]
+          Type=simple
+          User=$(whoami)
+          WorkingDirectory=$PROJECT_DIR
+          ExecStart=$PROJECT_DIR/venv/bin/python $MAIN_FILE
+          Restart=always
+          RestartSec=10
+          Environment="PATH=$PROJECT_DIR/venv/bin:/usr/local/bin:/usr/bin:/bin"
+
+          [Install]
+          WantedBy=multi-user.target
+          EOF
+
+              sudo systemctl daemon-reload
+              sudo systemctl enable "$PROJECT_NAME"
+              echo "✅ Systemd service created and enabled"
+            else
+              echo "ℹ️  Systemd service already exists"
+            fi
+
+            # Riavvia il servizio
+            echo "🔄 Restarting systemd service..."
+            sudo systemctl restart "$PROJECT_NAME"
+            
+            # Aspetta un attimo per verificare lo stato
+            sleep 2
+            
+            if sudo systemctl is-active --quiet "$PROJECT_NAME"; then
+              echo "✅ Service is running"
+              sudo systemctl status "$PROJECT_NAME" --no-pager -l
+            else
+              echo "❌ Service failed to start. Last logs:"
+              sudo journalctl -u "$PROJECT_NAME" -n 20 --no-pager
+              exit 1
             fi
 
           # --------------------------------------------------
@@ -136,12 +206,15 @@ jobs:
             echo "🐳 Docker Compose detected"
             docker compose down
             docker compose up -d --build
+            echo "✅ Docker containers started"
 
           else
             echo "ℹ️  No known project type detected"
           fi
 
           echo "✨ Deployment completed successfully"
+      env:
+        ENV_FILE: ${{ secrets.ENV_FILE }}
 
     - name: Deployment result
       if: always()
