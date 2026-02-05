@@ -95,7 +95,8 @@ jobs:
 
             if command -v pm2 >/dev/null 2>&1; then
               pm2 restart "$PROJECT_NAME" || pm2 start npm --name "$PROJECT_NAME" -- start
-              echo "✅ PM2 service restarted"
+              pm2 save
+              echo "✅ PM2 service restarted and saved for auto-start"
             else
               echo "⚠️  PM2 not installed"
             fi
@@ -178,7 +179,7 @@ jobs:
 
               sudo systemctl daemon-reload
               sudo systemctl enable "$PROJECT_NAME"
-              echo "✅ Systemd service created and enabled"
+              echo "✅ Systemd service created and enabled for auto-start"
             else
               echo "ℹ️  Systemd service already exists"
             fi
