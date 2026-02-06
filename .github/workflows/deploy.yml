@@ -7,7 +7,7 @@ on:
 
 env:
   PROJECT_NAME: ${{ github.event.repository.name }}
-  BASE_PATH: /home/pi/projects
+  BASE_PATH: /home/${{ secrets.SSH_USER }}/projects
 
 jobs:
   deploy:
