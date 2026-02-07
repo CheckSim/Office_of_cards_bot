@@ -28,8 +28,8 @@ jobs:
         username: ${{ secrets.SSH_USER }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         port: 22
-        timeout: 120m
-        command_timeout: 120m
+        timeout: 60m
+        command_timeout: 60m
         envs: >
           PROJECT_NAME,
           BASE_PATH,
@@ -131,6 +131,10 @@ jobs:
             source venv/bin/activate
 
             export PIP_PREFER_BINARY=1
+            
+            # Aggiungi piwheels per Raspberry Pi (wheel pre-compilati)
+            echo "📦 Configurazione pip per Raspberry Pi..."
+            pip config set global.extra-index-url https://www.piwheels.org/simple
 
             echo "📦 Installing dependencies..."
             pip install --upgrade pip setuptools wheel
